@@ -6,3 +6,5 @@ Fall 2017 BIOL 255E class materials
 * R code for each week is located in the `R_code` folder
 
 Here is my testing branch change
+
+Here are my server-side changes to this file
