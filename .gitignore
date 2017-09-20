@@ -1,3 +1,6 @@
+# Stop keeping track of .docx files
+*.docx
+
 # History files
 .Rhistory
 .Rapp.history
