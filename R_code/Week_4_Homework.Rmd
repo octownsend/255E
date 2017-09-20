@@ -1,0 +1,61 @@
+---
+title: "Week 4 Homework"
+author: "Olivia Townsend"
+date: "9/19/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import Data
+
+First, we set our working directory and import the data file "california-state-university-2015.csv" as a data frame called "df".
+
+```{r import}
+setwd("~/Desktop/255E")
+df<-read.csv("data/california-state-university-2015.csv")
+```
+
+## Subset Job Titles
+
+We were assigned the job title "ADMINISTRATOR" and need to see how many classes there are. To do this, we use the "levels" function and find that there are 4 classes. We then subset out the base pay for the following: ADMINISTRATOR I, ADMINISTRATOR II, ADMINISTRATOR III, ADMINISTRATOR IV.
+
+```{r levels}
+levels(df$Job.Title)
+```
+
+```{r job titles}
+admin1<-df$Base.Pay[df$Job.Title=="ADMINISTRATOR I"]
+admin2<-df$Base.Pay[df$Job.Title=="ADMINISTRATOR II"]
+admin3<-df$Base.Pay[df$Job.Title=="ADMINISTRATOR III"]
+admin4<-df$Base.Pay[df$Job.Title=="ADMINISTRATOR IV"]
+```
+
+## Generate a Boxplot
+
+Next, we create a boxplot showing the distribution of salaries for the different classes of administrators. The classes are ordered from lowest to highest paid and given abbreviated names along the x-axis, and the boxes are colored from light pink to dark pink in relation to salary. The x-axis is labeled "Job Title" and the y-axis is labeled "Base Pay ($)". In order for the y-axis scale to be in whole numbers rather than scientific notation (which R sometimes defaults to), the "options" function is used prior to generating the boxplot.
+
+```{r boxplot}
+options(scipen = 5)
+boxplot(admin1,admin2,admin3,admin4,names=c("Admin I","Admin II"
+              ,"Admin III","Admin IV"),cex.axis=0.9,ylab="Base Pay ($)",
+              xlab="Job Title",col=c("mistyrose","lightpink","hotpink",
+              "violetred"))
+```
+
+## Calculate and Print Mean Salaries
+
+Lastly, we calculate the mean salary for each class and print them into a table. We create a vector of the four means and call it "means". It's important to note that before we can use the "kable" function to create the table, we need to run the line library(knitr). Then we use the "kable" function with "means" as the data, column names as "Mean Salary", and row names included corresponding to job class. We can even include a table caption.
+
+```{r means}
+means<-c(mean(admin1),mean(admin2),mean(admin3),mean(admin4))
+library(knitr)
+kable(means,col.names = "Mean Salary",row.names = TRUE,caption = "Table of mean salaries for the four classes of administrators. Rows are numbered according to class.")
+```
+
+
+
+
+
