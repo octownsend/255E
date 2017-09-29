@@ -9,6 +9,8 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Create a function to download tide data from the NOAA website with a pre-selected tide station and date range
+
 ```{r tideFunction}
 # coops_tide_ht_retrieval.R
 # Author: Luke Miller Feb 2011
@@ -161,27 +163,38 @@ invisible(df)
 ```
 
 # Create a plotting function for the tide data
+The function includes appropriate axis labels, gridlines, and formatted title (month spelled out and 4-digit year). 
+
 ```{r plot function}
 plotTides<-function(df){
-  plot(x = df$TimeUTC,y = df$TideHT,type = 'l',xlab = "Date",ylab = "Tide Height (m)",col="blue")
+  date<-df$TimeUTC[1]
+  date<-as.Date(date)
+  date<-format(date,format="%B %Y")
+  plot(x = df$TimeUTC,y = df$TideHT,type = 'l',xlab = "Date (month, day)",ylab = "Tide Height  (m)",col="blue",main = date)
+  grid(nx=NA,ny=NULL,col = "darkgray")
 }
 
 ```
 
+# Let's plot tide data for August, September, and October 2016
+
+## First import the data using NOAAfunction
+
 ```{r grabmonths, cache=TRUE}
-#assign data frame for January 2010, call it jan
-jan=NOAAfunction(9413450,20100101,20100131)
+#assign data frame for August 2016, call it aug
+aug=NOAAfunction(9413450,20160801,20160831)
 
-#data frame feb for February 2010
-feb=NOAAfunction(9413450,20100201,20100228)
+#sept for September 2016
+sept=NOAAfunction(9413450,20160901,20160930)
 
-#data frame march for March 2010
-march=NOAAfunction(9413450,20100301,20100331)
+#oct for October 2016
+oct=NOAAfunction(9413450,20161001,20161031)
 ```
 
+## Then create the plots using plotTides
+
 ```{r plotmonths}
-#plot tide data for all 3 months
-plotTides(jan)
-plotTides(feb)
-plotTides(march)
+plotTides(aug)
+plotTides(sept)
+plotTides(oct)
 ```
