@@ -176,18 +176,16 @@ plotTides<-function(df){
 
 ```
 
-# Let's plot tide data for August, September, and October 2016
+# Let's plot tide data for August, September, and October 2016 from the Monterey Station
 
 ## First import the data using NOAAfunction
+Assign a data frame for each month: "aug" for August, "sept" for September, "oct" for October.
 
 ```{r grabmonths, cache=TRUE}
-#assign data frame for August 2016, call it aug
 aug=NOAAfunction(9413450,20160801,20160831)
 
-#sept for September 2016
 sept=NOAAfunction(9413450,20160901,20160930)
 
-#oct for October 2016
 oct=NOAAfunction(9413450,20161001,20161031)
 ```
 
