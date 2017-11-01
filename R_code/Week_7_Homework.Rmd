@@ -1,0 +1,67 @@
+---
+title: "Week_7_Homework"
+author: "Olivia Townsend"
+date: "10/4/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Import the CSU salary database and convert the "Employee.Name" column to a character class
+
+```{r import and convert}
+df = read.csv("../data/california-state-university-2015.csv")
+df$Employee.Name = as.character(df$Employee.Name)
+```
+
+# Find the entries...
+
+## with the name "Martinez"
+```{r Martinez}
+my_pattern = "[M][a][r][t][i][n][e][z]"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## whose name starts with the letters "Wil"*
+```{r name starts with Wil}
+my_pattern = "[W][i][l]"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## with a hyphenated name
+```{r hyphenated name}
+my_pattern = "[[:lower:]][-][[:upper:]]"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## whose middle name is Paul
+```{r middle name Paul}
+my_pattern = "[[:blank:]][P][a][u][l][[:blank:]]"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## with the last name Martinez
+```{r last name with Martinez}
+my_pattern = "[[:blank:]][M][a][r][t][i][n][e][z]"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## with the last name Martinez but no hyphenated names or Jr.
+```{r last name just Martinez}
+my_pattern = "[[:blank:]][M][a][r][t][i][n][e][z]$"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## with first name that starts with "E", has a middle initial, and last name Martinez
+```{r E middle initial Marinez}
+my_pattern = "^[E]\\w*[[:blank:]][A-Z][[:blank:]][M][a][r][t][i][n][e][z]$"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```
+
+## with first name that starts with "E", has NO middle initial, and last name Martinez
+```{r E no middle initial Martinez}
+my_pattern = "^[E]\\w*[[:blank:]][M][a][r][t][i][n][e][z]$"
+df$Employee.Name[grepl(pattern = my_pattern, df$Employee.Name)]
+```

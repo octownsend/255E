@@ -1,0 +1,78 @@
+---
+title: "Week_8"
+author: "Olivia Townsend"
+date: "10/11/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r importing files}
+fnames = dir("../data/temperature_trials",pattern = "*.csv",full.names = TRUE)
+for (i in 1:length(fnames)){
+  temp = read.csv(fnames[i])
+  temp$TrialNumber = 
+  if (i==1){
+    res = temp
+  } else {
+    res = rbind(res,temp)
+  }
+    
+}
+
+res$DateTime = as.POSIXct(res$DateTime,origin = '1970-1-1',tz="GMT")
+```
+
+```{r matching files}
+loc = regexpr(pattern = "Trial[0-9]*", text = fnames[12]) # change number of fnames depending on trial number (1-12)
+
+trialNumber = as.numeric(substr(fnames[12],start = loc[[1]][1]+5, stop = loc[[1]][1]+attr(loc,'match.length')-1))
+
+### make it into a for loop so you don't have to manually put in trial number
+for (i in 1:length(fnames)){
+  loc = regexpr(pattern = "Trial[0-9]*", text = fnames[i]) # change number of fnames depending on trial number (1-12)
+
+  trialNumber = as.numeric(substr(fnames[i],start = loc[[1]][1]+5, stop = loc[[1]][1]+attr(loc,'match.length')-1))
+  print(trialNumber)
+}
+```
+
+```{r import Mussel Info}
+library(xlsx)
+info = read.xlsx("../data/Mussel_Info.xlsx",sheetIndex = 1)
+```
+
+```{r convert tag ID}
+info$Tag.Color.. = as.character(info$Tag.Color..)
+names(info)[1] = "TagColor"
+
+substr(info$TagColor,start = 1, stop = 1)
+loc = regexpr(pattern = "[0-9]*$",text = info$TagColor)
+substr(info$TagColor,start = loc[[1]],stop = loc[[1]][i]+attr(loc,'match.length')-1)
+
+for (i in 1:nrow(info)){
+  #Extract the 1st letter of the color, for the current row i
+  color = substr(info$TagColor[i],start = 1, stop = 1)
+  #Get the location of a 1 or 2 digit number in the current row i of info$TagColor
+  loc = regexpr(pattern = "[0-9]*$",text = info$TagColor[i])
+  #Extract the digits from info$TagColor[i]
+  digits = substr(info$TagColor[i],start = loc[[1]][1],stop = loc[[1]]+attr(loc,'match.length')-1)
+  #Paste the number and letter together, with no space separating them
+  tagID = paste(digits,color,sep = "")
+  #Print just to check that it works
+  print(tagID)
+  #Write the new tagID into its own column in info, using the current row to make sure
+  #it matches up with whatever row i we are on
+  info$TagID[i] = tagID
+}
+
+```
+
+res[1,"TC0"]
+res[res$TrialNumber==2,'TC0']
+for loop to plot from every trial
+
+
+

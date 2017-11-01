@@ -1,0 +1,81 @@
+---
+title: "Week_7"
+author: "Olivia Townsend"
+date: "10/4/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r exercise1}
+text1 = "The current year is 2016"
+my_pattern = "[0-9]"
+grepl(pattern = my_pattern, text1)
+```
+
+```{r excercise2}
+gregexpr(my_pattern, text1)
+temp = gregexpr(my_pattern, text1)
+string_position = temp[[1]]
+substr(text1,21,24)
+substr(text1,string_position[1],string_position[length(string_position)])
+```
+
+```{r exercise3}
+gregexpr("[[:blank:]]",text1)
+grepl(pattern = "[[:upper:][:digit:]]",text1)
+```
+
+```{r exercise4}
+temp = regexpr(pattern = "[[:blank:]]",text1)
+first_space = temp[[1]][1]
+first_space
+```
+
+```{r exercise5}
+my_pattern = "[[:lower:]].[[:digit:]]"
+grepl(my_pattern,text1)
+
+gregexpr(my_pattern,text1)
+```
+
+```{r exercise6}
+gregexpr(my_pattern,text1)[[1]][1]
+string_pos2 = gregexpr(my_pattern,text1)[[1]][1] #this does the same thing as above
+#when we were creating temp
+string_pos2
+```
+
+```{r exercise7}
+my_pattern = "[[:blank:]][[:lower:]][[:lower:]][[:blank:]]"
+# or my_pattern = "\\s[[:lower:]][[:lower:]]\\s"
+gregexpr(my_pattern,text1)
+string_pos3 = gregexpr(my_pattern,text1)[[1]][1]
+string_pos3
+```
+
+```{r exercise8}
+text2 = sub(my_pattern," is not ",text1)
+text2
+```
+
+```{r exercise9}
+# using curly brackets for repeating characters using exercise 7 example
+my_pattern = "\\s[[:lower:]]{2}\\s"
+gregexpr(my_pattern,text1)[[1]][1]
+
+my_pattern = "\\d{4}"
+temp = gregexpr(my_pattern,text2)
+
+substr(text2, start = temp[[1]][1], stop = nchar(text2)) 
+
+string_pos4 = gregexpr(my_pattern,text2)[[1]][1]
+```
+
+```{r exercise10}
+substr(text2, start = string_pos4, stop = string_pos4+1)
+```
+
+

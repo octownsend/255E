@@ -1,0 +1,144 @@
+---
+title: "Portfolio_Outline"
+author: "Olivia Townsend"
+date: "11/1/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Files
+I have a combination of files to analyze. One file is an Excel version of my field notes, containing information like nest number and band number, deploy time/date and recovery time/date of GPS loggers, and morphometric measurements (mass, culmen length, head and bill length, wing chord) for each tagged bird. I also have a .csv file of tracking data for each bird, which includes latitude, longitude, speed, and altitude for every sampling point. I tracked 22 birds total.
+
+## Importing the Files
+My field notes are in an Excel format, so I will need to load the xlsx package and use the read.xlsx() function in order to import them.
+```{r import_fieldnotes}
+library(xlsx)
+setwd("~/Desktop/RTTR 2017")
+rttr<-read.xlsx("RTTR_2017.xlsx",sheetIndex = 1)
+```
+
+To import the 22 .csv tracking files, I can use the read.csv() function to import them individually and the rbind() function to combine them all into one data frame. This will be useful for analyses later on.
+```{r import_trackingdata}
+setwd("~/Desktop/RTTR 2017/csv files")
+rttr01<-read.csv("RTTR01_HALO_0424017.csv")
+rttr03<-read.csv("RTTR03_HALO_04262017.csv")
+rttr04<-read.csv("RTTR04_HALO_042617.csv")
+rttr06<-read.csv("RTTR06_HALO_04262017.csv")
+rttr07<-read.csv("RTTR07_HALO_04262017.csv")
+rttr08<-read.csv("RTTR08_HALO_042617.csv")
+rttr09<-read.csv("RTTR09_HALO_050117.csv")
+rttr10<-read.csv("RTTR10_HALO_050117.csv")
+rttr13<-read.csv("RTTR13_HALO_050417.csv")
+rttr14<-read.csv("RTTR14_HALO_050917.csv")
+rttr15<-read.csv("RTTR15_HALO_050917.csv")
+rttr16<-read.csv("RTTR16_HALO_050917.csv")
+rttr17<-read.csv("RTTR17_HALO_050917.csv")
+rttr18<-read.csv("RTTR18_HALO_051717.csv")
+rttr19<-read.csv("RTTR19_HALO_051717.csv")
+rttr20<-read.csv("RTTR20_HALO_051717.csv")
+rttr22<-read.csv("RTTR22_HALO_051717.csv")
+rttr24<-read.csv("RTTR24_HALO_051717.csv")
+rttr25<-read.csv("RTTR25_HALO_051717.csv")
+rttr27<-read.csv("RTTR27_HALO_051717.csv")
+rttr28<-read.csv("RTTR28_HALO_052517.csv")
+rttr29<-read.csv("RTTR29_HALO_052517.csv")
+
+rttrall<-rbind(rttr01,rttr03,rttr04,rttr06,rttr07,rttr08,rttr09,rttr10,rttr13,
+               rttr14,rttr15,rttr16,rttr17,rttr18,rttr19,rttr20,rttr22,rttr24,
+               rttr25,rttr27,rttr28,rttr29)
+```
+
+## Final Products
+
+# Visualization of morphometrics
+Rather than create a table of the morphometric data, I would like to plot it in order to display trends between different measurements (e.g. mass vs. head and bill length) and the sexes. In tropicbirds, males are typically larger than females and I would like to see if my sampled birds show the same pattern. For now, I am using a 3D scatterplot to graph mass vs. head and bill length vs. wing chord. Once I receive the molecular sexing results, I can color the data points by sex in order to differentiate between males and females.
+```{r morphometrics}
+library(xlsx)
+library(scatterplot3d)
+
+setwd("~/Desktop/RTTR 2017")
+rttr<-read.xlsx("RTTR_2017.xlsx",sheetIndex = 1)
+
+scatterplot3d(x=rttr$HEAD...BILL..mm.,y=rttr$WING.CH..mm.,z=rttr$MASS..g.,
+              xlab = "Head and Bill Length (mm)",ylab = "Wing Chord (mm)",
+              zlab = "Mass (g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add = 0.1)
+```
+
+# Map of all foraging tracks
+```{r all_tracks}
+library(maps)
+library(mapdata)
+library(lubridate)
+library(dplyr)
+library(argosfilter)
+library(RColorBrewer)
+data("world2MapEnv")
+data("worldMapEnv")
+
+map(database="world",xlim=c(-162,-150),ylim=c(16,26),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
+grid(nx=NULL,ny=NULL,col = "darkgray",lty = 1)
+axis(1, at=c(-162,-160,-158,-156,-154,-152,-150),cex.axis=0.8,labels = c(expression(162*degree*W),
+      expression(160*degree*W),expression(158*degree*W),
+      expression(156*degree*W),expression(154*degree*W),
+      expression(152*degree*W),expression(150*degree*W)))
+axis(2, at=c(16,18,20,22,24,26),cex.axis=0.8,labels = c(expression(16*degree*N),
+      expression(18*degree*N),expression(20*degree*N),expression(22*degree*N),
+      expression(24*degree*N),expression(26*degree*N)))
+lines(rttrall$Longitude,rttrall$Latitude,col="#8856A7")
+points(-157.68,21.28,col="#FECC5C",pch=17)
+```
+
+# Map of tracks from one individual showing differences in foraging strategy (short trips and long trip)
+```{r individual_track}
+map(database="world",xlim=c(-159,-156),ylim=c(17.5,22),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
+grid(nx=NULL,ny=NULL,col = "darkgray",lty = 1)
+axis(1, at=c(-159,-158,-157,-156),cex.axis=0.8,labels = c(expression(159*degree*W),
+      expression(158*degree*W),expression(157*degree*W),
+      expression(156*degree*W)))
+axis(2, at=c(17,18,19,20,21,22),cex.axis=0.8,labels = c(expression(17*degree*N),
+      expression(18*degree*N),expression(19*degree*N),expression(20*degree*N),
+      expression(21*degree*N),expression(22*degree*N)))
+lines(rttr04$Longitude,rttr04$Latitude,col="#8856A7")
+points(-157.68,21.28,col="#FECC5C",pch=17)
+```
+
+# Trip Parameters
+Similar to the morphometric data, I would rather put this information into a figure rather than a table. To characterize foraging behavior, I would like to calculate mean trip duration, distance, and max range of short and long foraging trips. I also want to compare parameters between the sexes. I do not have the code for this section yet, but I know I want my output figure to be a bar graph with SD bars included.
+```{r trip_parameters}
+library(adehabitatLT)
+
+
+```
+
+# Classification of Behavioral States
+I would like to generate a map that shows behavioral states (rest, transit, area-restricted search) for each track. I do not have the code yet but know I will need to use the Residence in Space and Time (RST) algorithm to classify the behaviors. I may also plot daily activity patterns (stacked histogram?) and bar graphs of mean speed and altitude by behavioral state and time of day.
+```{r behavioral_states}
+library(adehabitatLT)
+library(lubridate)
+library(dplyr)
+library(argosfilter)
+library(ggplot2)
+library(maptools)
+
+```
+
+# Spatial Distribution
+To visualize areas used for foraging, I plan to create a kernel density utilization distribution map (25-95% UDs), or perhaps one for short trips and one for long trips. Again, no code for this yet.
+```{r kernelUD}
+library(adehabitatHR)
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(dplyr)
+
+```
+
+# Stable Isotopes
+Lastly, I want to plot stable carbon and nitrogen values of blood and feather samples (and possibly distinguished by sex) to look at diet characteristics between the breeding and non-breeding season. However, this depends on when I get my stable isotope results back from the lab. No code for this yet but if I get my results back in time, it will be a basic scatterplot with carbon isotope values on the x-axis, nitrogen isotope values on the y-axis, and SD included on each plot point.
+```{r stable_isotopes}
+
+```
+

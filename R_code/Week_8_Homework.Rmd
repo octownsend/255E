@@ -1,0 +1,83 @@
+---
+title: "Week_8_Homework"
+author: "Olivia Townsend"
+date: "10/18/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Import the temperature data from all 12 trials into a data frame called "temp"
+### Use a for loop to convert the DateTime column into POSIX time values, calculate elapsed time, and make elapsed time a numeric value in a new column for each temperature trial. Also create a new column in "temp" to accomodate the trial number. Then rbind the new data in temp into the data frame "res".
+```{r import}
+fnames = dir("../data/temperature_trials",pattern = "*.csv",full.names = TRUE)
+for (i in 1:length(fnames)){
+  # open each file in turn
+  temp = read.csv(fnames[i])
+  # temp$TrialNumber = 
+  temp$DateTime = as.POSIXct(temp$DateTime,origin = '1970-1-1',tz="")
+  temp$elapsedTime = difftime(temp$DateTime, temp$DateTime[1], units = 'mins')
+  temp$elapsedTimeMin = as.numeric(temp$elapsedTime)
+  # Grab the trial number
+  loc = regexpr(pattern = "Trial[0-9]*", text = fnames[i])
+
+  trialNumber = as.numeric(substr(fnames[i],start = loc[[1]][1]+5, stop = loc[[1]][1]+attr(loc,'match.length')-1))
+  temp$trialNumber = trialNumber
+  
+  # rbind the new data in temp to the previous data in res
+  if (i==1){
+    res = temp
+  } else {
+    res = rbind(res,temp)
+  }
+    
+}
+
+res$POSIXt = as.POSIXct(res$POSIXt,origin = '1970-1-1',tz='')
+```
+
+# Create a plot of all the temperature data from channel TC0 for each trial number
+### First make an inital line graph of elapsed time versus temperature for trial 1 with proper labels and scales. Then make a for loop to add lines for trials 2-12 and have the line color change with each trial.
+```{r plot1}
+# make initial plot for trial 1
+plot(res$elapsedTime[res$trialNumber==1],res$TC0[res$trialNumber==1],type="l",xlab = "Elapsed Time, minutes", ylab = "Temperature, C",las=1,xlim = c(min(res$elapsedTimeMin),max(res$elapsedTimeMin)),ylim = c(min(res$TC0),max(res$TC0)))
+mtext(text = "Channel TC0 for each Trial", line = 1)
+# for loop to add lines for trial 2-12 and change line color each time
+trialNums = unique(res$trialNumber)
+for (y in 2:length(trialNums)){
+  lines(res$elapsedTimeMin[res$trialNumber==trialNums[y]], res$TC0[res$trialNumber==trialNums[y]],col = y)
+}
+
+```
+
+# Create a plot of temperature data from location In50 for each trial number
+### First import the heating trial info which contains the location data. Use a for loop to extract the channel number for location In50 for each trial. Keep in mind the channel number for location In50 is going to vary depending on the trial number. Assign the temperature values to a dataset called "temps" and the corresponding elapsed time values into one called "times". Similar to the previous plot, the logic is to create an inital line graph for the first trial and add lines for the remaining trials. Execute this using an "if" statement for when x (the trial number) equals 1 to plot the "times" versus "temps" with proper labels and scales. Then use "else" (so when x does not equal 1) to add lines and have them change color with each trial.
+```{r plot2}
+library(xlsx)
+# import heating trial info
+heatinfo=read.xlsx("../data/Heating_trial_info.xlsx", sheetIndex = 1)
+heatinfo$TCchannel = as.character(heatinfo$TCchannel)
+# extract the channel number for location In50 from each trial
+for (x in 1:max(which(heatinfo$TrialNumber==12))){
+  if (heatinfo$TCLocation[x] == "In50"){
+  chloc = regexpr(pattern = "[[:digit:]]",heatinfo$TCchannel[x])
+  chNum = substr(heatinfo$TCchannel[x], start = chloc[[1]][1],stop = chloc[[1]][1])
+  chName = paste("TC",chNum,sep = "")
+  trialNumber = heatinfo$TrialNumber[x]
+   
+  temps = res[res$trialNumber==trialNumber,chName]
+  times = res$elapsedTimeMin[res$trialNumber==trialNumber]
+# plot trial 1 first then add lines for remaining trials  
+  if (x==1){
+    plot(times, temps,type="l",xlab = "Elapsed Time, minutes", ylab = "Temperature, C",las=1,xlim = c(0,180),ylim = c(15,35))
+  mtext(text = "Location In50 for each Trial Number", line = 1)
+  } else {
+    lines(times,temps,col = x)
+  }
+}
+}  
+```
+
+
+
