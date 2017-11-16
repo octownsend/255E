@@ -9,16 +9,25 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Data Collection
+The Red-tailed Tropicbird (Phaethon rubricauda) is common throughout the tropical Indian and Pacific Oceans, yet there is little information about its behavior at sea, particularly in the central Pacific where there are sizeable breeding populations in the Hawaiian Islands. We GPS-tracked adult chick-rearing tropicbirds (n=22) from a colony on Oahu during April–May 2017 in order to collect information on their distribution and habitat use at sea. Birds were captured by hand on their nest before a foraging trip, weighed in a cloth sack using a spring scale, banded, and fitted with a tracking device. Lightweight archival GPS loggers weighing 18-20g (i-gotU GT-120) were taped to 3-4 central tail feathers using adhesive tape (Tesa, Germany) and configured to a sampling rate of 3 minutes. The weight of the logger represented 2-3% of the bird’s body mass, therefore not exceeding the 3-5% recommended threshold for seabirds. When a GPS-tagged bird returned from its trip to sea, the logger and tape were removed and the bird was sampled, then released at its nest. 
+Morphometric measurements (body mass, culmen length, head and bill length, wing chord) were taken from each study individual after the GPS logger was retrieved following standardized protocols reported in the literature. 
+A drop of blood was collected onto a Whatman card for every tracked bird to be used for molecular sexing. A 0.25 mL blood sample was also collected from 14 birds for stable isotope analysis (SIA) of δ 15N and δ 13C. SIA is increasingly becoming a useful tool for approximating the diet of foraging individuals as it provides information on a consumer’s trophic position and type of foraging area. Blood was drawn using a 1 mL syringe with a 25-gauge needle from the metatarsal vein on the leg using aseptic methods. This form of blood extraction is commonly used in bird studies since it appears to have no negative effects on foraging and survival. The sample was then frozen at -20°C until analysis at a later date. In addition, 3-4 body feathers were taken from each tracked bird to be used for SIA in conjunction with the blood samples. While blood provides dietary information for the breeding season, feathers tell us about a bird’s diet earlier in the year when they undergo molt, offering a more comprehensive diet assessment. Lastly, regurgitated samples and food items dropped in the colony were collected for supplemental material since SIA does not provide detailed information on prey identity. There were a total of 9 diet samples collected (7 flying fish spp., 1 squid spp., 1 unknown fish spp).
+
 ## Data Files
-I have a combination of files to analyze. One file is an Excel version of my field notes, containing information like nest number and band number, deploy time/date and recovery time/date of GPS loggers, and morphometric measurements (mass, culmen length, head and bill length, wing chord) for each tagged bird. I also have a .csv file of tracking data for each bird, which includes latitude, longitude, speed, and altitude for every sampling point. I tracked 22 birds total.
+I have a combination of files to analyze. One file is an Excel version of my field notes, containing information like nest number and band number, deploy time/date and recovery time/date of GPS loggers, morphometric measurements (mass, culmen length, head and bill length, wing chord), and chick stage. I also have individual .csv files of tracking data for each bird, which include latitude, longitude, speed, and altitude for every sampling point.
 
 ## Importing the Files
+
+My field notes are in an Excel format, so I need to load the xlsx package and use the read.xlsx() function in order to import them
 
 ```{r import_fieldnotes}
 library(xlsx)
 setwd("~/Desktop/RTTR 2017")
 rttr<-read.xlsx("RTTR_2017.xlsx",sheetIndex = 1)
 ```
+
+I use a for loop to import the 22 .csv tracking files. I also add a bird ID column in order to distinguish the tracks once they are all combined in the "rttrall" dataframe.
 
 ```{r import_trackingdata}
 fnames = dir("~/Desktop/RTTR 2017/csv files", pattern = ".csv",full.names = TRUE)
@@ -39,7 +48,8 @@ for (i in 1:length(fnames)){
 ## Final Products
 
 # Morphometrics
-In addition to creating a table of the morphometric data, I am creating a plot in order to display trends between different measurements (e.g. mass vs. head and bill length) and the sexes. In tropicbirds, males are typically larger than females and I would like to see if my sampled birds show the same pattern. For now, I am using a 3D scatterplot to graph mass vs. head and bill length vs. wing chord. Once I receive the molecular sexing results, I can color the data points by sex in order to differentiate between males and females.
+In addition to making a table of the morphometric data, I am creating a plot in order to display trends among different measurements and the sexes. In tropicbirds, males are typically larger than females and I would like to see if my sampled birds show the same pattern. For now, I am using a 3D scatterplot to graph mass vs. head and bill length vs. wing chord. Once I receive the molecular sexing results, I can color the data points by sex in order to differentiate between males and females.
+
 ```{r morphometrics}
 library(xlsx)
 library(scatterplot3d)
@@ -57,14 +67,16 @@ scatterplot3d(x=rttr$HEAD...BILL..mm.,y=rttr$WING.CH..mm.,z=rttr$MASS..g.,
               xlab = "Head and Bill Length (mm)",ylab = "Wing Chord (mm)",
               zlab = "Mass (g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add = 0.1)
 
-kable(rttr[,c(1,13,15,16)], col.names = c("BIRD ID", "MASS (g)", "HEAD AND BILL (mm)", "WING CHORD (mm)"), align = "c")
 
 ```
 
 # Map of all foraging tracks
+
 ```{r all_tracks}
 library(maps)
+library(maptools)
 library(mapdata)
+library(prettymapr)
 library(lubridate)
 library(dplyr)
 library(argosfilter)
@@ -81,12 +93,17 @@ axis(1, at=c(-162,-160,-158,-156,-154,-152,-150),cex.axis=0.8,labels = c(express
 axis(2, at=c(16,18,20,22,24,26),cex.axis=0.8,labels = c(expression(16*degree*N),
       expression(18*degree*N),expression(20*degree*N),expression(22*degree*N),
       expression(24*degree*N),expression(26*degree*N)))
-lines(rttrall$Longitude,rttrall$Latitude,col="#8856A7")
+lines(rttrall$Longitude,rttrall$Latitude,col="#de2d26")
 points(-157.68,21.28,col="#FECC5C",pch=17)
+addscalebar(plotepsg = 4326,widthhint = 0.25,unitcategory = "metric",htin = 0.1,padin = c(0.15,0.15),style = "ticks",tick.cex = 0.7,lwd = 1,linecol = "black",labelpadin = 0.08,label.cex = 0.8,label.col = "black",pos = "bottomright")
+addnortharrow(pos = "topleft",scale = 0.5)
 ```
 
-# Map of tracks from one individual showing differences in foraging strategy (short trips and long trip)
+# Map of tracks from one individual showing differences in foraging strategy (several short trips and one long trip)
+
 ```{r individual_track}
+rttr04<-read.csv("~/Desktop/RTTR 2017/csv files/RTTR04_HALO_042617.csv")
+
 map(database="world",xlim=c(-159,-156),ylim=c(17.5,22),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
 grid(nx=NULL,ny=NULL,col = "darkgray",lty = 1)
 axis(1, at=c(-159,-158,-157,-156),cex.axis=0.8,labels = c(expression(159*degree*W),
@@ -95,22 +112,85 @@ axis(1, at=c(-159,-158,-157,-156),cex.axis=0.8,labels = c(expression(159*degree*
 axis(2, at=c(17,18,19,20,21,22),cex.axis=0.8,labels = c(expression(17*degree*N),
       expression(18*degree*N),expression(19*degree*N),expression(20*degree*N),
       expression(21*degree*N),expression(22*degree*N)))
-lines(rttr04$Longitude,rttr04$Latitude,col="#8856A7")
+lines(rttr04$Longitude,rttr04$Latitude,col="#de2d26")
 points(-157.68,21.28,col="#FECC5C",pch=17)
+addscalebar(plotepsg = 4326,widthhint = 0.25,unitcategory = "metric",htin = 0.1,padin = c(0.15,0.15),style = "ticks",tick.cex = 0.7,lwd = 1,linecol = "black",labelpadin = 0.08,label.cex = 0.8,label.col = "black",pos = "bottomright")
+addnortharrow(pos = "topleft",scale = 0.4)
+```
+
+# Spatial Distribution
+To visualize core foraging areas, I am creating a kernel density utilization distribution map. Colors are shaded from lighter to darker in relation to kernel levels (95, 75, 50).
+
+```{r kernelUD}
+library(adehabitatHR)
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(ggmap)
+library(ggsn)
+library(marmap)
+library(dplyr)
+library(RColorBrewer)
+
+
+fnames = dir("~/Desktop/RTTR 2017/csv files", pattern = ".csv",full.names = TRUE)
+for (i in 1:length(fnames)){
+  temp=read.csv(fnames[i])
+  myfile=basename(fnames[i])
+  loc=regexpr(pattern="[[:digit:]]{2}_",text = myfile)
+  birdID = substr(myfile,start=loc[[1]],stop = loc[[1]]+1)
+  temp$BIRDID= birdID
+  if (i==1){
+    rttrall = temp
+  } else {
+    rttrall = rbind(rttrall,temp)}
+}
+
+tracks.spdf = SpatialPointsDataFrame(coords=as.data.frame(cbind(rttrall$Longitude,rttrall$Latitude)),data=data.frame(id=rep(1,length=length(rttrall$Latitude))),proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+
+ud_island = kernelUD(tracks.spdf, h = "href")
+
+ud50_island = getverticeshr(ud_island, percent=50, standardize=TRUE)
+ud75_island = getverticeshr(ud_island, percent=75, standardize=TRUE)
+ud95_island = getverticeshr(ud_island, percent=95, standardize=TRUE)
+
+w<-map_data("worldHires")
+
+kernelmap = ggplot()+
+  coord_fixed(xlim = c(-162,-150),ylim=c(16,26))+
+  geom_polygon(data=fortify(ud95_island),aes(x=long,y=lat,group=group),fill="#fee0d2",show.legend=T)+
+  geom_polygon(data=fortify(ud75_island),aes(x=long,y=lat,group=group),fill="#fc9272",show.legend=T)+
+  geom_polygon(data=fortify(ud50_island),aes(x=long,y=lat,group=group),fill="#de2d26",show.legend=T)+
+  geom_polygon(data=w,aes(long,lat,group=group),fill="gray",color="gray50")+
+  geom_point(aes(x=-157.68,y=21.28),pch=17,color="darkred",size=3)+
+  xlab("")+ylab("")+
+  scalebar(location = "bottomright",dist = 200,height = 0.02,st.dist = 0.02,st.size = 3,dd2km = TRUE,model = "WGS84",x.min = -162,x.max=-150,y.min = 16,y.max = 26)+
+  north(location = "topleft",scale = 0.15,symbol = 3,x.min = -162,x.max=-150,y.min = 16,y.max = 26)+
+  theme_bw()#
+kernelmap
+
+
 ```
 
 # Trip Parameters
-Similar to the morphometric data, I would rather put this information into a figure rather than a table. To characterize foraging behavior, I would like to calculate mean trip duration, distance, and max range of short and long foraging trips. I also want to compare parameters between the sexes. I do not have the code for this section yet, but I know I want my output figure to be a bar graph with SD bars included.
+To characterize foraging behavior, I would like to calculate mean trip duration, distance, and max range of short and long foraging trips. I also want to compare parameters between the sexes. I do not have the code for this section yet, but I know I want this information in a table and perhaps a bar graph with SD bars included.
+
 ```{r trip_parameters, eval=FALSE}
 library(adehabitatLT)
 library(oce)
 library(geosphere)
 
+temp=subset(rttrall,subset=rttrall$ID==1,select=c("ID","Date","Time","Latitude","Longitude"))
+for (myrow in 1:nrow(temp)){
+  
+}
+
 
 ```
 
 # Classification of Behavioral States
-I would like to generate a map that shows behavioral states (rest, transit, area-restricted search) for each track. I do not have the code yet but know I will need to use the Residence in Space and Time (RST) algorithm to classify the behaviors. I may also plot daily activity patterns (stacked histogram?) and bar graphs of mean speed and altitude by behavioral state and time of day.
+I would like to generate a map that shows behavioral states (rest, transit, area-restricted search) for a foraging track. I do not have the code yet but know I will need to use the Residence in Space and Time (RST) algorithm to classify the behaviors. I may also plot daily activity patterns (stacked histogram?) and bar graphs of mean speed and altitude by behavioral state and time of day.
+
 ```{r behavioral_states, eval=FALSE}
 library(adehabitatLT)
 library(lubridate)
@@ -118,17 +198,6 @@ library(dplyr)
 library(argosfilter)
 library(ggplot2)
 library(maptools)
-
-```
-
-# Spatial Distribution
-To visualize areas used for foraging, I plan to create a kernel density utilization distribution map (25-95% UDs), or perhaps one for short trips and one for long trips. Again, no code for this yet.
-```{r kernelUD, eval=FALSE}
-library(adehabitatHR)
-library(ggplot2)
-library(maps)
-library(mapdata)
-library(dplyr)
 
 ```
 
