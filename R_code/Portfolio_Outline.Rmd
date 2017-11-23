@@ -58,16 +58,39 @@ library("kableExtra")
 
 setwd("~/Desktop/RTTR 2017")
 rttr<-read.xlsx("RTTR_2017.xlsx",sheetIndex = 1)
+males<-rttr[rttr$Sex=="M",]
+females<-rttr[rttr$Sex=="F",]
+#undetermined<-rttr[rttr$Sex=="ND",]
 
 #table
 kable(rttr[,c(1,13,15,16)], col.names = c("BIRD ID", "MASS (g)", "HEAD AND BILL (mm)", "WING CHORD (mm)"), align = "c")
 
 #graph
 scatterplot3d(x=rttr$HEAD...BILL..mm.,y=rttr$WING.CH..mm.,z=rttr$MASS..g.,
-              xlab = "Head and Bill Length (mm)",ylab = "Wing Chord (mm)",
-              zlab = "Mass (g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add = 0.1)
+              color=as.numeric(rttr$Sex),xlab = "Head and Bill Length (mm)",ylab = "Wing
+              Chord (mm)",zlab = "Mass (g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add
+              = 0.1)
 
+#red = M
+#black = F
 
+sex<-as.vector(rttr$Sex)
+mass<-as.vector(rttr$MASS..g.)
+culmen<-as.vector(rttr$CULMEN..mm.)
+headbill<-as.vector(rttr$HEAD...BILL..mm.)
+wingch<-as.vector(rttr$WING.CH..mm.)
+
+boxplot(rttr$MASS..g.[rttr$Sex=="M"],rttr$MASS..g.[rttr$Sex=="F"])
+t.test(mass~sex,var.equal=TRUE)
+
+boxplot(rttr$CULMEN..mm.[rttr$Sex=="M"],rttr$CULMEN..mm.[rttr$Sex=="F"])
+t.test(culmen~sex,var.equal=TRUE)
+
+boxplot(rttr$HEAD...BILL..mm.[rttr$Sex=="M"],rttr$HEAD...BILL..mm.[rttr$Sex=="F"])
+t.test(headbill~sex,var.equal=TRUE)
+
+boxplot(rttr$WING.CH..mm.[rttr$Sex=="M"],rttr$WING.CH..mm.[rttr$Sex=="F"])
+t.test(wingch~sex,var.equal=TRUE)
 ```
 
 # Map of all foraging tracks
@@ -189,15 +212,60 @@ for (myrow in 1:nrow(temp)){
 ```
 
 # Classification of Behavioral States
-I would like to generate a map that shows behavioral states (rest, transit, area-restricted search) for a foraging track. I do not have the code yet but know I will need to use the Residence in Space and Time (RST) algorithm to classify the behaviors. I may also plot daily activity patterns (stacked histogram?) and bar graphs of mean speed and altitude by behavioral state and time of day.
+I would like to generate a map that shows behavioral states (transit vs. area-restricted search) for the foraging tracks. I do not have the code yet but know I will need to use the Residence in Space and Time (RST) algorithm to classify the behaviors. I may also plot daily activity patterns (stacked histogram?) and bar graphs of mean speed and altitude by behavioral state and time of day.
 
-```{r behavioral_states, eval=FALSE}
+```{r behavioral_states}
 library(adehabitatLT)
 library(lubridate)
 library(dplyr)
 library(argosfilter)
 library(ggplot2)
 library(maptools)
+library(maps)
+
+#Converting .csv data to an ltraj object
+rttrall$DateTimeGMT<-mdy_hms(paste(rttrall$Date,rttrall$Time,tz="GMT"))
+rttrall$DateTimeHST<-rttrall$DateTimeGMT-hours(10)
+
+coordinates(rttrall)<-cbind(rttrall$Longitude,rttrall$Latitude)
+rttrdata<-as.ltraj(cbind(rttrall$Longitude,rttrall$Latitude),date=rttrall$DateTimeHST,id=rttrall$BIRDID)
+
+#Calculate civil dawn and dusk, check times, filter as needed
+HALO<-matrix(c(-157.68,21.28),nrow=1)
+firstpoint<-rttrall[1,]
+civildawn<-crepuscule(HALO,firstpoint$DateTimeHST,solarDep=6,direction="dawn",POSIXct.out=TRUE)
+civildawnHST<-civildawn$time-hours(10)
+civildusk<-crepuscule(HALO,firstpoint$DateTimeHST,solarDep=6,direction="dusk",POSIXct.out=TRUE)
+civilduskHST<-civildusk$time-hours(10)
+
+#Calculate residence time
+res<-residenceTime(rttrdata,radius = .00774,maxt = 0.5,units = "hours")
+plot(res,addlines=FALSE,addpoints=TRUE)
+
+#Extract the residence time values from the class resiti object above
+times<-res[[1]]$RT.0.00774
+
+#Find the quartile values
+quantile(times, na.rm = TRUE)
+
+#Identify the top 25% residence time values
+uppertimes<-res[[1]]$RT.0.00774>6647.99662
+
+#Plot with ARS patches red
+map(database="world",xlim=c(-162,-150),ylim=c(16,26),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
+grid(nx=NULL,ny=NULL,col = "darkgray",lty = 1)
+axis(1, at=c(-162,-160,-158,-156,-154,-152,-150),cex.axis=0.8,labels = c(expression(162*degree*W),
+                                                                         expression(160*degree*W),expression(158*degree*W),
+                                                                         expression(156*degree*W),expression(154*degree*W),
+                                                                         expression(152*degree*W),expression(150*degree*W)))
+axis(2, at=c(16,18,20,22,24,26),cex.axis=0.8,labels = c(expression(16*degree*N),
+                                                        expression(18*degree*N),expression(20*degree*N),expression(22*degree*N),
+                                                        expression(24*degree*N),expression(26*degree*N)))
+
+plot(rttrall, pch = 16, cex = 0.5)
+lines(rttrall$Longitude,rttrall$Latitude)
+points(rttrall$Longitude[uppertimes==TRUE],rttrall$Latitude[uppertimes==TRUE],col="red", pch=16, cex = 0.3)
+
 
 ```
 
