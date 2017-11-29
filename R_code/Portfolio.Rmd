@@ -1,7 +1,7 @@
 ---
-title: "Portfolio_Outline"
+title: "Portfolio"
 author: "Olivia Townsend"
-date: "11/1/2017"
+date: "11/28/2017"
 output: word_document
 ---
 
@@ -19,7 +19,7 @@ I have a combination of files to analyze. One file is an Excel version of my fie
 
 ## Importing the Files
 
-My field notes are in an Excel format, so I need to load the xlsx package and use the read.xlsx() function in order to import them
+My field notes are in an Excel format, so I need to load the xlsx package and use the read.xlsx() function in order to import them.
 
 ```{r import_fieldnotes}
 library(xlsx)
@@ -48,7 +48,7 @@ for (i in 1:length(fnames)){
 ## Final Products
 
 # Morphometrics
-In addition to making a table of the morphometric data, I am creating a 3D scatterplot in order to display trends among different measurements (mass, head and bill length, wing chord) and the sexes. In tropicbirds, males tend to be larger than females; however, sex cannot reliably be determined using body measurements as this is not always the case. Thus, blood was collected for molecular sexing and 24/29 sampled individuals were confidently sexed. Red points on the scatterplot are males and black points are females. 
+In addition to making a table of the morphometric data, I am creating a 3D scatterplot in order to display trends among different measurements (mass, head and bill length, wing chord) and the sexes. In tropicbirds, males tend to be larger than females; however, sex cannot reliably be determined using body measurements. Thus, blood was collected for molecular sexing and 24/29 sampled individuals were confidently sexed. Red data points on the scatterplot are males and black data points are females. 
 
 ```{r morphometrics}
 library(xlsx)
@@ -129,7 +129,7 @@ alltracks
 ```
 
 # Map of foraging tracks from an individual
-This is to better visualize the variation in tropicbird foraging strategy (several short trips and one long trip). Adult tropicbirds are bimodal foragers, performing short foraging trips when they are tending to a chick and long trips to replenish their own energy reserves.
+This is to better view the variation in tropicbird foraging strategy (several short trips and one long trip). Adult tropicbirds are bimodal foragers, performing short foraging trips when they are tending to a chick and long trips to replenish their own energy reserves.
 
 ```{r individual_track}
 rttr04<-read.csv("~/Desktop/RTTR 2017/csv files/RTTR04_HALO_042617.csv")
@@ -202,7 +202,7 @@ kernelmap
 ```
 
 # Trip Parameters
-To characterize foraging behavior, I am going to calculate trip duration, distance, and max range of foraging trips. First, I am using a series of functions to identify individual foraging trips when birds left a fixed radius around the colony. I plotted tracks from one bird to check that it worked.
+To characterize foraging behavior, I am going to calculate trip duration, distance, and max range of foraging trips using the 'geosphere' package. First, I am using a series of functions to identify individual foraging trips when birds leave from/return to a fixed radius around the colony (1.5km). I plotted tracks from one bird to check that it worked.
 
 ```{r trip_parameters}
 library(ggplot2)
@@ -360,7 +360,7 @@ rttrall$InterpointDist<-InterpointDist(tracks = rttrall,ID = "BIRDID",lat = "Lat
 # Calculate distance to colony
 rttrall$Dist2Col<-Dist2Colony(tracks = rttrall,ColonyLat = 21.28,ColonyLong = -157.68)
 
-# segment into tripos
+# segment into trips
 tracks_w_trips<-MakeTrip(tracks = rttrall,ID = "BIRDID",DistCutOff = 1.5,Dist2Colony = "Dist2Col")
 
 head(tracks_w_trips)
@@ -373,7 +373,7 @@ ggplot(tracks_w_trips[tracks_w_trips$BIRDID=="19",],aes(Longitude,Latitude,col=f
 ```
 
 # Classification of Behavioral States
-Behavioral state (area-restricted search (ARS) vs. transit) calculated based on residence time. Foraging trips mapped with ARS locations in red and transit in black.
+Behavioral state (area-restricted search (ARS) vs. transit) was determined based on residence time. Foraging trips are mapped with ARS locations in red and transit in black.
 
 ```{r behavioral_states}
 library(adehabitatLT)
@@ -384,6 +384,7 @@ library(ggplot2)
 library(maptools)
 library(maps)
 library(mapdata)
+library(prettymapr)
 
 #Converting .csv data to an ltraj object
 rttrall$DateTimeGMT<-mdy_hms(paste(rttrall$Date,rttrall$Time,tz="GMT"))
@@ -402,7 +403,7 @@ civilduskHST<-civildusk$time-hours(10)
 
 #Calculate residence time
 res<-residenceTime(rttrdata,radius = .01509,maxt = 1,units = "hours")
-plot(res,addlines=FALSE,addpoints=TRUE)
+#plot(res,addlines=FALSE,addpoints=TRUE)
 
 #Extract the residence time values from the class resiti object above
 times<-res[[1]]$RT.0.01509
@@ -424,6 +425,8 @@ expression(24*degree*N),expression(26*degree*N)))
 
 lines(rttrall$Longitude,rttrall$Latitude)
 points(rttrall$Longitude[uppertimes==TRUE],rttrall$Latitude[uppertimes==TRUE],col="red", pch=16, cex = 0.3)
+map.scale(x=-155.3, y=17, metric=TRUE,ratio=FALSE, relwidth=0.3)
+addnortharrow(pos = "topleft",scale = 0.4)
 ```
 
 Map of an individual for a better visual.
@@ -431,16 +434,17 @@ Map of an individual for a better visual.
 ```{r individual_restime}
 rttr24<-read.csv("~/Desktop/RTTR 2017/csv files/RTTR24_HALO_051717.csv")
 
-map(database="world",xlim=c(-162,-150),ylim=c(16,26),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
+map(database="world",xlim=c(-160,-154),ylim=c(16,22),mar = c(3.5,1,1,1),fill = TRUE,col = "darkgray")
 grid(nx=NULL,ny=NULL,col = "darkgray",lty = 1)
-axis(1, at=c(-162,-160,-158,-156,-154,-152,-150),cex.axis=0.8,labels = c(expression(162*degree*W),expression(160*degree*W),expression(158*degree*W),
-expression(156*degree*W),expression(154*degree*W),expression(152*degree*W),expression(150*degree*W)))
-axis(2, at=c(16,18,20,22,24,26),cex.axis=0.8,labels = c(expression(16*degree*N),
-expression(18*degree*N),expression(20*degree*N),expression(22*degree*N),
-expression(24*degree*N),expression(26*degree*N)))
+axis(1, at=c(-160,-158,-156,-154),cex.axis=0.8,labels = c(expression(160*degree*W),expression(158*degree*W),
+expression(156*degree*W),expression(154*degree*W)))
+axis(2, at=c(16,18,20,22),cex.axis=0.8,labels = c(expression(16*degree*N),
+expression(18*degree*N),expression(20*degree*N),expression(22*degree*N)))
 
 lines(rttr24$Longitude,rttr24$Latitude)
 points(rttr24$Longitude[uppertimes==TRUE],rttr24$Latitude[uppertimes==TRUE],col="red", pch=16, cex = 0.3)
+map.scale(x=-156.8, y=16.8, metric=TRUE,ratio=FALSE, relwidth=0.3)
+addnortharrow(pos = "topleft",scale = 0.4)
 
 ```
 
