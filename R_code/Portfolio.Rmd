@@ -1,7 +1,7 @@
 ---
 title: "Portfolio"
 author: "Olivia Townsend"
-date: "11/28/2017"
+date: "12/13/2017"
 output: word_document
 ---
 
@@ -48,13 +48,14 @@ for (i in 1:length(fnames)){
 ## Final Products
 
 # Morphometrics
-In addition to making a table of the morphometric data, I am creating a 3D scatterplot in order to display trends among different measurements (mass, head and bill length, wing chord) and the sexes. In tropicbirds, males tend to be larger than females; however, sex cannot reliably be determined using body measurements. Thus, blood was collected for molecular sexing and 24/29 sampled individuals were confidently sexed. Red data points on the scatterplot are males and black data points are females. 
+Morphometric measurements were taken from an individual when a GPS logger was successfully retrieved. Five birds lost their loggers at sea and consequently were not measured (and are excluded from the following table). In addition to making a table of the morphometric data, I am creating a 3D scatterplot in order to display trends among different measurements (mass, head and bill length, wing chord) and between the sexes. In tropicbirds, males tend to be larger than females; however, sex cannot reliably be determined using body measurements. Thus, blood was collected for molecular sexing and 24/29 sampled individuals were confidently sexed. Measured birds with sexing data available are graphed. Red data points on the scatterplot are males and black data points are females. 
 
 ```{r morphometrics}
 library(xlsx)
 library(scatterplot3d)
 library(knitr)
 library("kableExtra")
+library(RColorBrewer)
 
 setwd("~/Desktop/RTTR 2017")
 rttr<-read.xlsx("RTTR_2017.xlsx",sheetIndex = 1)
@@ -63,19 +64,20 @@ females<-rttr[rttr$Sex=="F",]
 #undetermined<-rttr[rttr$Sex=="ND",]
 
 #table
-kable(rttr[,c(1,13,15,16)], col.names = c("BIRD ID", "MASS (g)", "HEAD AND BILL (mm)", "WING CHORD (mm)"), align = "c")
+rttrmorph=na.omit(rttr[,c(1,14,15,16)])
+row.names(rttrmorph) <- NULL
+kable(rttrmorph, col.names = c("BIRD ID", "MASS (g)", "HEAD + BILL (mm)", "WING CHORD (mm)"), align = "c")
 
 #graph
-scatterplot3d(x=rttr$HEAD...BILL..mm.,y=rttr$WING.CH..mm.,z=rttr$MASS..g.,
+s3d<-scatterplot3d(x=rttr$HEAD...BILL..mm.,y=rttr$WING.CH..mm.,z=rttr$MASS..g.,
               color=as.numeric(rttr$Sex),xlab = "Head and Bill Length (mm)",ylab = "Wing
-              Chord (mm)",zlab = "Mass (g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add
-              = 0.1)
+              Chord (mm)",zlab = "Mass(g)",cex.symbols=1,cex.axis=0.8,pch=19,y.margin.add
+              = 0.1,type = "h")
+legend(s3d$xyz.convert(117.5,315,800),pch = 16,legend = c("Male","Female"),col = c("red","black"),cex = 0.65)
 
-#red = M
-#black = F
 ```
 
-Visually, there isn't much segregation between males and females. I decided to make boxplots of each measurement to get a better look and performed simple t-tests for comparisons. Mean mass was higher in males than females, although the difference was not significant. Mean head and bill length and mean wing chord were comparable between the sexes.
+Visually, there isn't much segregation between males and females. I decided to make some quick boxplots of each measurement to get a better look and performed simple t-tests for comparisons. Mean mass was higher in males than females (Males=687.8g, Females=648.2g), although the difference was not significant (p=0.08311). Mean head and bill length and mean wing chord were comparable between the sexes.
 
 ```{r boxplots_ttests}
 
@@ -84,18 +86,18 @@ mass<-as.vector(rttr$MASS..g.)
 headbill<-as.vector(rttr$HEAD...BILL..mm.)
 wingch<-as.vector(rttr$WING.CH..mm.)
 
-boxplot(rttr$MASS..g.[rttr$Sex=="M"],rttr$MASS..g.[rttr$Sex=="F"])
+boxplot(rttr$MASS..g.~as.vector(rttr$Sex),ylab="Mass (g)",col = c("#f7f7f7","#737373"))
 t.test(mass~sex,var.equal=TRUE)
 
-boxplot(rttr$HEAD...BILL..mm.[rttr$Sex=="M"],rttr$HEAD...BILL..mm.[rttr$Sex=="F"])
+boxplot(rttr$HEAD...BILL..mm.~as.vector(rttr$Sex),ylab="Head and Bill (mm)",col = c("#f7f7f7","#737373"))
 t.test(headbill~sex,var.equal=TRUE)
 
-boxplot(rttr$WING.CH..mm.[rttr$Sex=="M"],rttr$WING.CH..mm.[rttr$Sex=="F"])
+boxplot(rttr$WING.CH..mm.~as.vector(rttr$Sex),ylab="Wing Chord (mm)",col = c("#f7f7f7","#737373"))
 t.test(wingch~sex,var.equal=TRUE)
 ```
 
 # Map of all foraging tracks
-Raw tracks for all tagged birds.
+Raw tracks for all tagged birds. Triangle represents the colony location.
 
 ```{r all_tracks}
 library(maps)
@@ -118,8 +120,8 @@ w<-map_data("worldHires")
 alltracks = ggplot()+
   coord_fixed(xlim = c(-162,-150),ylim=c(16,26))+
   geom_polygon(data=w,aes(long,lat,group=group),fill="gray",color="gray50")+
-  geom_path(aes(rttrall$Longitude,rttrall$Latitude,colour="#de2d26"),show.legend = FALSE)+
-  geom_point(aes(x=-157.68,y=21.28),pch=17,color="#FECC5C",size=3)+
+  geom_path(aes(rttrall$Longitude,rttrall$Latitude,color="#de2d26"),show.legend = FALSE)+
+  geom_point(aes(x=-157.68,y=21.28),pch=17,color="darkred",size=3)+
   xlab("")+ylab("")+
   scalebar(location = "bottomright",dist = 200,height = 0.02,st.dist = 0.02,st.size = 3,dd2km = TRUE,model = "WGS84",x.min = -162,x.max=-150,y.min = 16,y.max = 26)+
   north(location = "topleft",scale = 0.15,symbol = 3,x.min = -162,x.max=-150,y.min = 16,y.max = 26)+
@@ -137,17 +139,17 @@ rttr04<-read.csv("~/Desktop/RTTR 2017/csv files/RTTR04_HALO_042617.csv")
 indtrack = ggplot()+
   coord_fixed(xlim = c(-159,-156),ylim=c(17.5,22))+
   geom_polygon(data=w,aes(long,lat,group=group),fill="gray",color="gray50")+
-  geom_path(aes(rttr04$Longitude,rttr04$Latitude,colour="#de2d26"),show.legend = FALSE)+
-  geom_point(aes(x=-157.68,y=21.28),pch=17,color="#FECC5C",size=3)+
+  geom_path(aes(rttr04$Longitude,rttr04$Latitude,color="#de2d26"),show.legend = FALSE)+
+  geom_point(aes(x=-157.68,y=21.28),pch=17,color="darkred",size=3)+
   xlab("")+ylab("")+
   scalebar(location = "bottomright",dist = 100,height = 0.02,st.dist = 0.02,st.size = 3,dd2km = TRUE,model = "WGS84",x.min = -159,x.max=-156.3,y.min = 17.5,y.max = 22)+
-  north(location = "topleft",scale = 0.13,symbol = 3,x.min = -159,x.max=-156,y.min = 17.5,y.max = 22)+
+  north(location = "topleft",scale = 0.13,symbol = 3,x.min = -159,x.max=-156,y.min = 17.5,y.max = 22)+ggtitle("Bird #4")+
   theme_bw()
 indtrack
 ```
 
 # Spatial Distribution
-Utilization distribution was calculated using the fixed kernel density estimation and mapped to visualize tropicbird space use in Hawaiian waters. Colors are shaded from lighter to darker in relation to kernel UDs. Overall or full UDs are 95%, core UDs are 50%.
+Utilization distribution was calculated using the fixed kernel density estimation and mapped to visualize tropicbird space use in Hawaiian waters. Colors are shaded from lighter to darker in relation to kernel UDs. Overall or full UDs are indicated by 95%, core UDs are 50%. 
 
 ```{r kernelUD}
 library(adehabitatHR)
@@ -201,8 +203,8 @@ kernelmap
 
 ```
 
-# Trip Parameters
-To characterize foraging behavior, I am going to calculate trip duration, distance, and max range of foraging trips using the 'geosphere' package. First, I am using a series of functions to identify individual foraging trips when birds leave from/return to a fixed radius around the colony (1.5km). I plotted tracks from one bird to check that it worked.
+# Identifying Individual Foraging Trips
+Future analysis will involve calculating trip durations, distances, and max ranges to characterize foraging movements. In order to do that, individual foraging trips need to be identified. I am using a series of functions to identify individual foraging trips when birds leave from/return to a fixed radius around the colony (1.5km). Individual trips for every bird are assigned a number, while locations inside the radius (and therefore not foraging trips) are assigned a "0". I plotted tracks from one bird (bird #19) to check that it worked. The map shows two individual foraging trips for this particular bird. Locations assigned a trip number of "0" are most likely not visible due to their extremely short distance compared to locations outside the colony threshold.
 
 ```{r trip_parameters}
 library(ggplot2)
@@ -368,12 +370,12 @@ head(tracks_w_trips)
 # Plot a bird to check
 ggplot(tracks_w_trips[tracks_w_trips$BIRDID=="19",],aes(Longitude,Latitude,col=factor(TripNum)))+
   geom_path(size=.2)+
-  geom_point(data=tracks_w_trips[tracks_w_trips$BIRDID=="19"&tracks_w_trips$ColonyMovement%in%c("Out","In"),])
+  geom_point(data=tracks_w_trips[tracks_w_trips$BIRDID=="19"&tracks_w_trips$ColonyMovement%in%c("Out","In"),])+ggtitle("Bird #19")
 
 ```
 
 # Classification of Behavioral States
-Behavioral state (area-restricted search (ARS) vs. transit) was determined based on residence time. Foraging trips are mapped with ARS locations in red and transit in black.
+Behavioral state (area-restricted search (ARS) vs. transit) was determined based on residence time. Foraging trips are mapped with ARS locations in red. The results of this behavioral classification will likely need to be manually inspected in the future since bouts of birds floating/resting may have been misidentified as search/foraging behavior.
 
 ```{r behavioral_states}
 library(adehabitatLT)
@@ -427,9 +429,10 @@ lines(rttrall$Longitude,rttrall$Latitude)
 points(rttrall$Longitude[uppertimes==TRUE],rttrall$Latitude[uppertimes==TRUE],col="red", pch=16, cex = 0.3)
 map.scale(x=-155.3, y=17, metric=TRUE,ratio=FALSE, relwidth=0.3)
 addnortharrow(pos = "topleft",scale = 0.4)
+legend("right",legend = c("Transit","ARS"),col=c("black","red"),pch=16,cex = 0.8)
 ```
 
-Map of an individual for a better visual.
+Map of an individual's foraging trips for a better visual of behaviorally-classified tracks.
 
 ```{r individual_restime}
 rttr24<-read.csv("~/Desktop/RTTR 2017/csv files/RTTR24_HALO_051717.csv")
@@ -445,6 +448,8 @@ lines(rttr24$Longitude,rttr24$Latitude)
 points(rttr24$Longitude[uppertimes==TRUE],rttr24$Latitude[uppertimes==TRUE],col="red", pch=16, cex = 0.3)
 map.scale(x=-156.8, y=16.8, metric=TRUE,ratio=FALSE, relwidth=0.3)
 addnortharrow(pos = "topleft",scale = 0.4)
+legend("topright",legend = c("Transit","ARS"),col=c("black","red"),pch=16,cex = 0.8)
+title(main = "Bird #24")
 
 ```
 
